@@ -31,7 +31,7 @@ import Ui from './Ui';
     const ui = document.createElement('div');
     const root = createRoot(ui);
     root.render(<Ui />);
-    
+
     sidebar.appendChild(ui);
     return ui;
   };
