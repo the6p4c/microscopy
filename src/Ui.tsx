@@ -1,5 +1,135 @@
-import React from 'react';
+import React, { ReactNode } from 'react';
+
+import api from './api';
+import Search, { SearchMatch } from './search';
+import { ellipsisAfter } from './util';
+
+function Result({ result: { title, link, match} }: { result: { title: string, link: string, match: SearchMatch } }) {
+  return <li className="mb-4">
+    <div>
+      <a href={link} target="_blank" className="underline">{title}</a>
+    </div>
+    <div style={{ marginLeft: '1rem' }}>
+      {match.before}<strong>{match.matched}</strong>{match.after}
+    </div>
+  </li>;
+}
+
+function Results({ progress, busy, children }: { progress: [number | null, number | null], busy: boolean, children: ReactNode }) {
+  const pageNumber = (pageNumber: number | null) => {
+    if (pageNumber !== null) {
+      return pageNumber + 1;
+    } else {
+      return '?';
+    }
+  };
+
+  const [currentPage, totalPages] = progress;
+
+  const Spinner = () => <svg
+    version="1.1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32"
+    className="h-6 self-center text-gray-500" style={{ animation: '1s infinite spin' }}
+  >
+    <path fill="none" stroke="rgb(131, 37, 79)" strokeWidth="3" d="M 8 16 A 8 8 0 0 1 16 8" />
+    <path fill="none" stroke="#eee" strokeWidth="3" d="M 16 8 A 8 8 0 1 1 8 16" />
+  </svg>;
+
+  return <>
+    <div className="flex gap-2" style={{ alignItems: 'baseline' }}>
+      <strong className="text-xl font-bold">results</strong>
+      <div style={{ flexGrow: 1 }}></div>
+      <span>(page {pageNumber(currentPage)}/{pageNumber(totalPages)})</span>
+      {busy && <Spinner />}
+    </div>
+    <ul>
+      {children}
+    </ul>
+  </>;
+}
 
 export default function Ui() {
-  return <strong>meow</strong>;
+  const username = new URL(window.location.href).pathname.split('/')[1];
+
+  const [active, setActive] = React.useState(false);
+  const [activeSticky, setActiveSticky] = React.useState(false);
+  const cancel = React.useRef(false);
+  const [progress, setProgress] = React.useState([-1, null] as [number, number | null]);
+  const [results, setResults] = React.useState([]);
+
+  const startSearch = async (query: string) => {
+    const search = new Search(query);
+
+    setProgress([null, null]);
+    setResults([]);
+
+    let lastPage = 0;
+    const posts = api.posts.profilePosts(username);
+    for await (const [post, page] of posts) {
+      if (cancel.current) break;
+
+      const match = search.matches(post);
+      if (match) {
+        const title = post.headline || ellipsisAfter(post.plainTextBody, 0, 32);
+        const link = post.singlePostPageUrl;
+        const result = { title, link, match };
+
+        setResults(searchResults => [...searchResults, result]);
+      }
+
+      setProgress([page, null]);
+      lastPage = page;
+    }
+
+    // only show the total page count if we actually reached the end
+    if (!cancel.current) {
+      setProgress([lastPage, lastPage]);
+    }
+
+    cancel.current = false;
+  };
+
+  const cancelSearch = () => {
+    cancel.current = true;
+  };
+
+  const submit = (e: React.FormEvent) => {
+    e.preventDefault();
+
+    const formData = new FormData(e.target as HTMLFormElement);
+    const { query } = Object.fromEntries(formData.entries()) as { query: string };
+
+    setActive(!active);
+    setActiveSticky(true);
+
+    if (!active) {
+      startSearch(query);
+    } else {
+      cancelSearch();
+    }
+  };
+
+  return <div className="cohost-shadow-light dark:cohost-shadow-dark flex flex-col divide-y divide-gray-300 rounded-lg bg-white lg:max-w-sm">
+    <div className="flex flex-row items-center rounded-t-lg bg-longan p-3 uppercase text-notBlack">
+      Search @{username}
+    </div>
+    <div className="flex flex-col gap-2 px-3 py-2 text-notBlack">
+      <form onSubmit={submit} className="flex flex-col gap-3">
+        <div className="relative grid w-full overflow-auto">
+          <input
+            name="query" type="text" required disabled={active}
+            autoComplete="off" placeholder="query"
+            className="border-cherry w-full row-start-1 row-end-2 col-start-1 col-end-2 min-h-0"
+          />
+        </div>
+        <div className="flex w-full flex-row items-center justify-end gap-4">
+          <button className="rounded-lg bg-cherry py-2 px-4 text-sm font-bold text-notWhite hover:bg-cherry-600 active:bg-cherry-700 disabled:bg-cherry-200">
+            {active ? 'cancel' : 'search'}
+          </button>
+        </div>
+      </form>
+      {activeSticky && <Results progress={progress} busy={active}>
+        {results.map(result => <Result key={result.link} result={result} />)}
+      </Results>}
+    </div>
+  </div>;
 }
