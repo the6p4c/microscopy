@@ -4,26 +4,15 @@ import api from './cohost/api';
 import Search, { SearchMatch } from './search';
 import { ellipsisAfter } from './util';
 
+type Progress = [number | null, number | null];
+
 type Result = {
   title: string,
   link: string,
   match: SearchMatch,
 };
 
-function Result({ result: { title, link, match} }: { result: { title: string, link: string, match: SearchMatch } }) {
-  return <li className="mb-4">
-    <div>
-      <a href={link} target="_blank" className="underline">{title}</a>
-    </div>
-    <div style={{ marginLeft: '1rem' }}>
-      {match.before}<strong>{match.matched}</strong>{match.after}
-    </div>
-  </li>;
-}
-
-type Progress = [number | null, number | null];
-
-function Results({ progress, busy, children }: { progress: Progress, busy: boolean, children: ReactNode }) {
+function Results({ progress, busy, results }: { progress: Progress, busy: boolean, results: Result[] }) {
   const [currentPage, totalPages] = progress;
   const pageNumber = (pageNumber: number | null) => {
     if (pageNumber !== null) {
@@ -41,6 +30,18 @@ function Results({ progress, busy, children }: { progress: Progress, busy: boole
     <path fill="none" stroke="#eee" strokeWidth="3" d="M 16 8 A 8 8 0 1 1 8 16" />
   </svg>;
 
+  // TODO: names hard
+  const resultsX = results.map((result) => {
+    return <li className="mb-4">
+      <div>
+        <a href={result.link} target="_blank" className="underline">{result.title}</a>
+      </div>
+      <div style={{ marginLeft: '1rem' }}>
+        {result.match.before}<strong>{result.match.matched}</strong>{result.match.after}
+      </div>
+    </li>;
+  });
+
   return <>
     <div className="flex gap-2" style={{ alignItems: 'baseline' }}>
       <strong className="text-xl font-bold">results</strong>
@@ -48,7 +49,7 @@ function Results({ progress, busy, children }: { progress: Progress, busy: boole
       <span>(page {pageNumber(currentPage)}/{pageNumber(totalPages)})</span>
       {busy && <Spinner />}
     </div>
-    <ul>{children}</ul>
+    <ul>{resultsX}</ul>
   </>;
 }
 
@@ -64,6 +65,9 @@ export default function Ui() {
   const startSearch = async (query: string) => {
     const search = new Search(query);
 
+    setActive(true);
+    setActiveSticky(true);
+    cancel.current = false;
     setProgress([null, null]);
     setResults([]);
 
@@ -91,6 +95,7 @@ export default function Ui() {
     }
 
     cancel.current = false;
+    setActive(false);
   };
 
   const cancelSearch = () => {
@@ -100,13 +105,9 @@ export default function Ui() {
   const submit = (e: React.FormEvent) => {
     e.preventDefault();
 
-    const formData = new FormData(e.target as HTMLFormElement);
-    const { query } = Object.fromEntries(formData.entries()) as { query: string };
-
-    setActive(!active);
-    setActiveSticky(true);
-
     if (!active) {
+      const formData = new FormData(e.target as HTMLFormElement);
+      const { query } = Object.fromEntries(formData.entries()) as { query: string };
       startSearch(query);
     } else {
       cancelSearch();
@@ -132,9 +133,7 @@ export default function Ui() {
           </button>
         </div>
       </form>
-      {activeSticky && <Results progress={progress} busy={active}>
-        {results.map(result => <Result key={result.link} result={result} />)}
-      </Results>}
+      {activeSticky && <Results progress={progress} busy={active} results={results} />}
     </div>
   </div>;
 }
