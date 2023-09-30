@@ -1,0 +1,13 @@
+{
+  "name": "microscopy",
+  "packageManager": "yarn@3.6.1",
+  "devDependencies": {
+    "@rollup/plugin-typescript": "latest",
+    "rollup": "latest",
+    "tslib": "latest",
+    "typescript": "latest"
+  },
+  "scripts": {
+    "dev": "rollup --config rollup.config.ts --configPlugin typescript"
+  }
+}
