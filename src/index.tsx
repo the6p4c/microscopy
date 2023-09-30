@@ -3,7 +3,7 @@
 // @namespace   Violentmonkey Scripts
 // @match       https://cohost.org/*
 // @grant       none
-// @version     1.0
+// @version     __version__
 // @author      the6p4c
 // @description search for posts by a particular user
 // @require     __react__

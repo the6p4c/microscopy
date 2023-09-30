@@ -37,6 +37,7 @@ export default {
     replace({
       preventAssignment: true,
       'process.env.NODE_ENV': JSON.stringify(process.env.NODE_ENV),
+      '__version__': pkg.version,
       '__react__': unpkg('react',
         `umd/react.${isProduction ? 'production.min.js' : 'development.js'}`
       ),
