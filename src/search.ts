@@ -1,3 +1,4 @@
+import { Post } from './cohost/types';
 import { ellipsisAfter, ellipsisBefore } from './util';
 
 export interface SearchMatch {
@@ -13,7 +14,7 @@ export default class Search {
     this.query = new RegExp(query, 'i');
   }
 
-  matches(post): SearchMatch | null {
+  matches(post: Post): SearchMatch | null {
     const tryMatch = (s: string) => {
       if (!s) return null;
 

@@ -1,13 +1,15 @@
 {
   "compilerOptions": {
-    //"strict": true,
-    "noEmitOnError": true,
-    "removeComments": false,
     "target": "ES2020",
+    "module": "es6",
+    "jsx": "react",
+
+    "strict": true,
+    "removeComments": false,
+
     "moduleResolution": "node",
     "esModuleInterop": true,
-    "jsx": "react",
-    "module": "es6",
+
     "typeRoots": [
       "./types",
       "./node_modules/@types",

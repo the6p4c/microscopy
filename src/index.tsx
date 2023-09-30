@@ -16,12 +16,17 @@ import Ui from './Ui';
 
 (() => {
   // find an element on the site that doesn't disappear due to hydration
-  const content = document.querySelector('#app > * > header').nextElementSibling;
+  const content = document.querySelector('#app > * > header')?.nextElementSibling;
+  if (!content) {
+    console.error('[cohost user post search] couldn\'t find cohost (?)');
+    return;
+  }
 
-  // insert our ui (if we're on a user page)
+  // get ready to install our ui
+  const getSidebar = () => content.querySelector('.flex.flex-col.gap-5');
   const install = () => {
-    const sidebar = content.querySelector('.flex.flex-col.gap-5');
-    if (!sidebar) return;
+    const sidebar = getSidebar();
+    if (!sidebar) throw '[cohost user post search] couldn\'t find sidebar in install';
 
     const ui = document.createElement('div');
     const root = createRoot(ui);
@@ -31,16 +36,16 @@ import Ui from './Ui';
     return ui;
   };
 
-  let ui = install();
-  if (!ui) {
-    console.debug('cohost user post search: not a user page');
+  if (!getSidebar()) {
+    console.debug('[cohost user post search] not a user page');
     return;
   }
 
-  // put the ui back if it disappears >:(
-  const mutationCallback = (mutations) => {
+  // install the ui, and put the ui back if it disappears >:(
+  let ui = install();
+  const mutationCallback = (mutations: MutationRecord[]) => {
     for (const mutation of mutations) {
-      if (mutation.type != 'childList' || mutation.removedNodes == 0) continue;
+      if (mutation.type != 'childList' || mutation.removedNodes.length === 0) continue;
 
       for (const removedNode of mutation.removedNodes) {
         if (removedNode.contains(ui)) {

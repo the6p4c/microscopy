@@ -1,8 +1,14 @@
 import React, { ReactNode } from 'react';
 
-import api from './api';
+import api from './cohost/api';
 import Search, { SearchMatch } from './search';
 import { ellipsisAfter } from './util';
+
+type Result = {
+  title: string,
+  link: string,
+  match: SearchMatch,
+};
 
 function Result({ result: { title, link, match} }: { result: { title: string, link: string, match: SearchMatch } }) {
   return <li className="mb-4">
@@ -15,7 +21,10 @@ function Result({ result: { title, link, match} }: { result: { title: string, li
   </li>;
 }
 
-function Results({ progress, busy, children }: { progress: [number | null, number | null], busy: boolean, children: ReactNode }) {
+type Progress = [number | null, number | null];
+
+function Results({ progress, busy, children }: { progress: Progress, busy: boolean, children: ReactNode }) {
+  const [currentPage, totalPages] = progress;
   const pageNumber = (pageNumber: number | null) => {
     if (pageNumber !== null) {
       return pageNumber + 1;
@@ -23,8 +32,6 @@ function Results({ progress, busy, children }: { progress: [number | null, numbe
       return '?';
     }
   };
-
-  const [currentPage, totalPages] = progress;
 
   const Spinner = () => <svg
     version="1.1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32"
@@ -41,9 +48,7 @@ function Results({ progress, busy, children }: { progress: [number | null, numbe
       <span>(page {pageNumber(currentPage)}/{pageNumber(totalPages)})</span>
       {busy && <Spinner />}
     </div>
-    <ul>
-      {children}
-    </ul>
+    <ul>{children}</ul>
   </>;
 }
 
@@ -53,8 +58,8 @@ export default function Ui() {
   const [active, setActive] = React.useState(false);
   const [activeSticky, setActiveSticky] = React.useState(false);
   const cancel = React.useRef(false);
-  const [progress, setProgress] = React.useState([-1, null] as [number, number | null]);
-  const [results, setResults] = React.useState([]);
+  const [progress, setProgress] = React.useState([-1, null] as Progress);
+  const [results, setResults] = React.useState([] as Result[]);
 
   const startSearch = async (query: string) => {
     const search = new Search(query);
@@ -64,7 +69,7 @@ export default function Ui() {
 
     let lastPage = 0;
     const posts = api.posts.profilePosts(username);
-    for await (const [post, page] of posts) {
+    for await (const post of posts) {
       if (cancel.current) break;
 
       const match = search.matches(post);
@@ -76,8 +81,8 @@ export default function Ui() {
         setResults(searchResults => [...searchResults, result]);
       }
 
-      setProgress([page, null]);
-      lastPage = page;
+      setProgress([post.page, null]);
+      lastPage = post.page;
     }
 
     // only show the total page count if we actually reached the end
