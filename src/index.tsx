@@ -9,6 +9,7 @@
 // @require     __react__
 // @require     __react-dom__
 // ==/UserScript==
+/// <reference types="node" />
 import React from 'react';
 import { createRoot } from 'react-dom/client';
 

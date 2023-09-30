@@ -1,6 +1,3 @@
-// TODO: why is this so mad?
-// @ts-ignore
-import process from 'process';
 import nodeResolve from '@rollup/plugin-node-resolve';
 import replace from '@rollup/plugin-replace';
 import typescript from '@rollup/plugin-typescript';

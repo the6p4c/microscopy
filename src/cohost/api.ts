@@ -50,14 +50,31 @@ type CacheResponse<R> = {
 const cache: { [key: string]: any } = {};
 
 async function cacheGetOrElse<R>(uri: string, onCacheMiss: () => Promise<R>): Promise<CacheResponse<R>> {
-  if (uri in cache) {
+  const pageCacheGet = (key: string) => cache[key];
+  const pageCacheSet = (key: string, value: any) => cache[key] = value;
+  const browserCacheGet = (key: string) => {
+    const s = localStorage.getItem(key);
+    if (!s) return null;
+    return JSON.parse(s);
+  };
+  const browserCacheSet = (key: string, value: any) => {
+    localStorage.setItem(key, JSON.stringify(value));
+  }
+
+  const [cacheGet, cacheSet] =
+    process.env.NODE_ENV == 'production'
+    ? [pageCacheGet, pageCacheSet]
+    : [browserCacheGet, browserCacheSet];
+
+  let cachedResponse = cacheGet(uri);
+  if (cachedResponse) {
     return {
-      response: cache[uri] as R,
+      response: cachedResponse as R,
       cacheHit: true,
     };
   } else {
     const response = await onCacheMiss();
-    cache[uri] = response;
+    cacheSet(uri, response);
     return {
       response,
       cacheHit: false,
