@@ -1,5 +1,5 @@
 // ==UserScript==
-// @name        cohost user post search
+// @name        microscopy
 // @namespace   Violentmonkey Scripts
 // @match       https://cohost.org/*
 // @grant       none
@@ -18,7 +18,7 @@ import Ui from './Ui';
   // find an element on the site that doesn't disappear due to hydration
   const content = document.querySelector('#app > * > header')?.nextElementSibling;
   if (!content) {
-    console.error('[cohost user post search] couldn\'t find cohost (?)');
+    console.error('[microscopy] couldn\'t find cohost (?)');
     return;
   }
 
@@ -26,7 +26,7 @@ import Ui from './Ui';
   const getSidebar = () => content.querySelector('.flex.flex-col.gap-5');
   const install = () => {
     const sidebar = getSidebar();
-    if (!sidebar) throw '[cohost user post search] couldn\'t find sidebar in install';
+    if (!sidebar) throw '[microscopy] couldn\'t find sidebar in install';
 
     const ui = document.createElement('div');
     const root = createRoot(ui);
@@ -37,7 +37,7 @@ import Ui from './Ui';
   };
 
   if (!getSidebar()) {
-    console.debug('[cohost user post search] not a user page');
+    console.debug('[microscopy] not a user page');
     return;
   }
 
