@@ -49,7 +49,16 @@ function Results({ progress, busy, results }: { progress: Progress, busy: boolea
       <span>(page {pageNumber(currentPage)}/{pageNumber(totalPages)})</span>
       {busy && <Spinner />}
     </div>
-    <ul>{resultsX}</ul>
+    {
+      resultsX.length !== 0
+      ? <ul>{resultsX}</ul>
+      : busy
+      ? <span className="text-gray-500">nothing yet...</span>
+      : <>
+        <img className="w-24 mx-auto" src="https://cohost.org/static/9559ff8058a895328d76.png" />
+        <span className="text-center text-gray-500">no results</span>
+      </>
+    }
   </>;
 }
 
