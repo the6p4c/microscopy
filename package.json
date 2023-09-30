@@ -2,19 +2,19 @@
   "name": "microscopy",
   "packageManager": "yarn@3.6.3",
   "devDependencies": {
-    "@rollup/plugin-commonjs": "latest",
-    "@rollup/plugin-node-resolve": "latest",
-    "@rollup/plugin-replace": "latest",
-    "@rollup/plugin-typescript": "latest",
-    "@types/react": "latest",
-    "@types/react-dom": "latest",
-    "rollup": "latest",
-    "tslib": "latest",
-    "typescript": "latest"
+    "@rollup/plugin-node-resolve": "^15.2.1",
+    "@rollup/plugin-replace": "^5.0.2",
+    "@rollup/plugin-typescript": "^11.1.4",
+    "@types/react": "^18.2.23",
+    "@types/react-dom": "^18.2.8",
+    "rollup": "^3.29.4",
+    "tslib": "^2.6.2",
+    "typescript": "^5.2.2"
   },
   "dependencies": {
-    "react": "latest",
-    "react-dom": "latest"
+    "@types/node": "^20.8.0",
+    "react": "18.2.0",
+    "react-dom": "^18.2.0"
   },
   "scripts": {
     "build": "rollup --config rollup.config.ts --configPlugin @rollup/plugin-typescript",
