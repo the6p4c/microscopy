@@ -1,13 +1,23 @@
 {
   "name": "microscopy",
-  "packageManager": "yarn@3.6.1",
+  "packageManager": "yarn@3.6.3",
   "devDependencies": {
+    "@rollup/plugin-commonjs": "latest",
+    "@rollup/plugin-node-resolve": "latest",
+    "@rollup/plugin-replace": "latest",
     "@rollup/plugin-typescript": "latest",
+    "@types/react": "latest",
+    "@types/react-dom": "latest",
     "rollup": "latest",
     "tslib": "latest",
     "typescript": "latest"
   },
+  "dependencies": {
+    "react": "latest",
+    "react-dom": "latest"
+  },
   "scripts": {
-    "dev": "rollup --config rollup.config.ts --configPlugin typescript"
+    "build": "rollup --config rollup.config.ts --configPlugin @rollup/plugin-typescript",
+    "dev": "rollup --config rollup.config.ts --configPlugin @rollup/plugin-typescript --watch"
   }
 }
