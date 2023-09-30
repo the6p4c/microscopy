@@ -1,0 +1,49 @@
+name: build-and-upload
+run-name: build and upload to pages
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: checkout code
+        uses: actions/checkout@v4
+      - name: setup node
+        uses: actions/setup-node@v3
+        with:
+          node-version: 'latest'
+
+      - name: switch to production build
+        run: echo "NODE_ENV=production" >> "$GITHUB_ENV"
+
+      - name: install
+        uses: borales/actions-yarn@v4
+        with:
+          cmd: install
+      - name: build
+        uses: borales/actions-yarn@v4
+        with:
+          cmd: build
+
+      - name: prepare for pages
+        run: mkdir pages && cp dist/microscopy.user.js pages/microscopy.main.user.js
+      - name: upload as pages artifact
+        uses: actions/upload-pages-artifact@v2
+        with:
+          path: 'pages/'
+
+  upload:
+    needs: build
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: deploy to pages
+        uses: actions/deploy-pages@v2

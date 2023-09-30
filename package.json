@@ -13,11 +13,11 @@
   },
   "dependencies": {
     "@types/node": "^20.8.0",
-    "react": "^18.2.0",
-    "react-dom": "^18.2.0"
+    "react": "18.2.0",
+    "react-dom": "18.2.0"
   },
   "scripts": {
-    "build": "rollup --config rollup.config.ts --configPlugin @rollup/plugin-typescript",
-    "dev": "rollup --config rollup.config.ts --configPlugin @rollup/plugin-typescript --watch"
+    "build": "rollup -c",
+    "dev": "rollup -c --watch"
   }
 }
