@@ -1,4 +1,4 @@
-import React, { ReactNode } from 'react';
+import React from 'react';
 
 import api from './cohost/api';
 import Search, { SearchMatch } from './search';
@@ -13,10 +13,10 @@ type Result = {
 };
 
 function Results({ progress, busy, results }: { progress: Progress, busy: boolean, results: Result[] }) {
-  const [currentPage, totalPages] = progress;
-  const pageNumber = (pageNumber: number | null) => {
+  const [currentPost, postCount] = progress;
+  const count = (pageNumber: number | null) => {
     if (pageNumber !== null) {
-      return pageNumber + 1;
+      return pageNumber;
     } else {
       return '?';
     }
@@ -46,7 +46,7 @@ function Results({ progress, busy, results }: { progress: Progress, busy: boolea
     <div className="flex gap-2" style={{ alignItems: 'baseline' }}>
       <strong className="text-xl font-bold">results</strong>
       <div style={{ flexGrow: 1 }}></div>
-      <span>(page {pageNumber(currentPage)}/{pageNumber(totalPages)})</span>
+      <span>({count(currentPost)}/{count(postCount)} posts)</span>
       {busy && <Spinner />}
     </div>
     {
@@ -80,10 +80,11 @@ export default function Ui() {
     setProgress([null, null]);
     setResults([]);
 
-    let lastPage = 0;
+    let count = 0;
     const posts = api.posts.profilePosts(username);
     for await (const post of posts) {
       if (cancel.current) break;
+      console.log(post);
 
       const match = search.matches(post);
       if (match) {
@@ -94,13 +95,12 @@ export default function Ui() {
         setResults(searchResults => [...searchResults, result]);
       }
 
-      setProgress([post.page, null]);
-      lastPage = post.page;
+      setProgress([++count, null]);
     }
 
-    // only show the total page count if we actually reached the end
+    // only show the total post count if we actually reached the end
     if (!cancel.current) {
-      setProgress([lastPage, lastPage]);
+      setProgress([count, count]);
     }
 
     cancel.current = false;

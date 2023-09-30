@@ -22,7 +22,7 @@ type PostsProfilePostsResponse = {
   error: object,
 };
 
-async function* postsProfilePosts(projectHandle: string): AsyncGenerator<Post & { page: number }, any, any> {
+async function* postsProfilePosts(projectHandle: string): AsyncGenerator<Post, any, any> {
   let page = 0;
   while (true) {
     const { response, cacheHit } = await trpc<PostsProfilePostsResponse>('posts.profilePosts', {
@@ -35,40 +35,42 @@ async function* postsProfilePosts(projectHandle: string): AsyncGenerator<Post & 
     const { posts, pagination } = response.result.data;
 
     if (posts.length == 0) return;
-    yield* posts.map(post => {
-      return { page, ...post };
-    });
+    yield* posts;
 
     page = pagination.nextPage;
     if (!cacheHit) await delay(250);
   }
 }
 
-type TrpcResponse<R> = {
+type CacheResponse<R> = {
   response: R,
   cacheHit: boolean,
 };
 
-const cache: { [key: string]: object } = {};
+const cache: { [key: string]: any } = {};
 
-async function trpc<R>(endpoint: string, request: object): Promise<TrpcResponse<R>> {
-  const base = 'https://cohost.org/api/v1/trpc/';
-  const query = new URLSearchParams({ input: JSON.stringify(request) });
-  const uri = `${base}/${endpoint}?${query}`;
-
+async function cacheGetOrElse<R>(uri: string, onCacheMiss: () => Promise<R>): Promise<CacheResponse<R>> {
   if (uri in cache) {
     return {
       response: cache[uri] as R,
       cacheHit: true,
     };
   } else {
-    const response = await (await fetch(uri)).json();
+    const response = await onCacheMiss();
     cache[uri] = response;
     return {
       response,
       cacheHit: false,
-    };
+    }
   }
+}
+
+async function trpc<R>(endpoint: string, request: any): Promise<CacheResponse<R>> {
+  const base = 'https://cohost.org/api/v1/trpc/';
+  const query = new URLSearchParams({ input: JSON.stringify(request) });
+  const uri = `${base}/${endpoint}?${query}`;
+
+  return cacheGetOrElse(uri, async () => await (await fetch(uri)).json());
 }
 
 function delay(duration: number): Promise<void> {
